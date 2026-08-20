@@ -221,7 +221,12 @@ namespace Gati.EditorTools
             go.transform.SetParent(parent, false);
             var text = go.AddComponent<Text>();
             text.text = content;
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            text.font = font;
+            // A Text component built purely through script doesn't always
+            // pick up its renderer material automatically — it silently
+            // renders nothing (no error) unless this is set explicitly.
+            if (font != null) text.material = font.material;
             text.fontSize = fontSize;
             text.alignment = anchor;
             text.color = Color.white;
