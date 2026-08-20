@@ -33,7 +33,14 @@ namespace Gati.Player
         public void Build(CharacterData data)
         {
             _data = data;
-            foreach (Transform child in transform) Destroy(child.gameObject);
+            // Build() is normally called at edit time from GatiSceneBuilder,
+            // where Destroy() doesn't actually work (it silently no-ops
+            // outside Play mode) — use DestroyImmediate there instead.
+            foreach (Transform child in transform)
+            {
+                if (Application.isPlaying) Destroy(child.gameObject);
+                else DestroyImmediate(child.gameObject);
+            }
 
             var skin = CreateMaterial(data.SkinColor);
             var outfit = CreateMaterial(data.OutfitPrimary);

@@ -82,7 +82,31 @@ namespace Gati.EditorTools
             // null right now and crash CharacterRig.Build() on its first line.
             var character = CharacterCatalog.ById(SaveSystem.SelectedCharacterId);
             gm.character = character;
-            rig.Build(character);
+
+            // Prefer a real Mixamo model if "Gati > Setup Mixamo Character"
+            // has been run (see MixamoSetup.cs); otherwise fall back to the
+            // primitive placeholder.
+            var mixamoModel = AssetDatabase.LoadAssetAtPath<GameObject>(MixamoPaths.Character);
+            var runnerController = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(MixamoPaths.Controller);
+            if (mixamoModel != null && runnerController != null)
+            {
+                var modelInstance = (GameObject)PrefabUtility.InstantiatePrefab(mixamoModel, socketGO.transform);
+                modelInstance.transform.localPosition = Vector3.zero;
+                modelInstance.transform.localRotation = Quaternion.identity;
+
+                var animator = modelInstance.GetComponent<Animator>();
+                if (animator == null) animator = modelInstance.AddComponent<Animator>();
+                animator.runtimeAnimatorController = runnerController;
+
+                var driver = modelInstance.AddComponent<MixamoAnimatorDriver>();
+                driver.controller = controller;
+
+                Object.DestroyImmediate(rig);
+            }
+            else
+            {
+                rig.Build(character);
+            }
 
             // --- EventSystem (required for uGUI button clicks) ---------------
             var es = new GameObject("EventSystem");
