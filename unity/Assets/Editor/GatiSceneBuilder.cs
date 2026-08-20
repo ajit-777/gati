@@ -8,6 +8,7 @@ using Gati.Player;
 using Gati.World;
 using Gati.Gameplay;
 using Gati.UI;
+using Gati.Data;
 
 namespace Gati.EditorTools
 {
@@ -75,7 +76,13 @@ namespace Gati.EditorTools
             sky.gameManager = gm;
 
             // --- Character rig needs a valid character before first Build ----
-            rig.Build(gm.character);
+            // GameManager.character is only set in Awake(), which doesn't run
+            // at edit time (only when Play starts) — so resolve it directly
+            // here rather than reading gm.character, which would still be
+            // null right now and crash CharacterRig.Build() on its first line.
+            var character = CharacterCatalog.ById(SaveSystem.SelectedCharacterId);
+            gm.character = character;
+            rig.Build(character);
 
             // --- EventSystem (required for uGUI button clicks) ---------------
             var es = new GameObject("EventSystem");
